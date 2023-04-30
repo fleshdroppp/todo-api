@@ -9,3 +9,6 @@
 - Auth via JWT.
 - Graceful Shutdown.
 - Swagger via <a href="https://github.com/swaggo/swag">swaggo/swag</a>.
+
+## TODO :
+- tests using testify for golang
