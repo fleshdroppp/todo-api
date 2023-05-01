@@ -58,6 +58,7 @@ func (s *AuthService) ParseToken(accessToken string) (int, error) {
 		}
 		return []byte(signingKey), nil
 	})
+
 	if err != nil {
 		return -1, err
 	}
