@@ -1,9 +1,15 @@
 package repository
 
 import (
+	"context"
 	"github.com/jmoiron/sqlx"
+	redis2 "github.com/redis/go-redis/v9"
 	todo "todo-api"
+	"todo-api/pkg/repository/postgres"
+	"todo-api/pkg/repository/redis"
 )
+
+// postgres
 
 type Authorization interface {
 	CreateUser(user todo.User) (int, error)
@@ -26,16 +32,27 @@ type TodoItem interface {
 	Update(userId, itemId int, input todo.UpdateItemInput) error
 }
 
+// redis
+
+type TodoListCache interface {
+	HSet(userId int, data string) error
+	HSetById(userId int, listId int, data string) error
+	HGet(userId int) (string, error)
+	HGetById(userId int, listId int) (string, error)
+}
+
 type Repository struct {
 	Authorization
 	TodoList
+	TodoListCache
 	TodoItem
 }
 
-func NewRepository(db *sqlx.DB) *Repository {
+func NewRepository(ctx context.Context, db *sqlx.DB, client *redis2.Client) *Repository {
 	return &Repository{
-		Authorization: NewAuthPostgres(db),
-		TodoList:      NewTodoListPostgres(db),
-		TodoItem:      NewTodoItemPostgres(db),
+		Authorization: postgres.NewAuthPostgres(db),
+		TodoList:      postgres.NewTodoListPostgres(db),
+		TodoListCache: redis.NewTodoListRedis(ctx, client),
+		TodoItem:      postgres.NewTodoItemPostgres(db),
 	}
 }

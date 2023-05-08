@@ -12,6 +12,8 @@ import (
 	todo "todo-api"
 	"todo-api/pkg/handler"
 	"todo-api/pkg/repository"
+	"todo-api/pkg/repository/postgres"
+	"todo-api/pkg/repository/redis"
 	"todo-api/pkg/service"
 )
 
@@ -36,7 +38,9 @@ func main() {
 		logrus.Fatalf("error loading env var : %s", err.Error())
 	}
 
-	db, err := repository.NewPostgresDB(repository.Config{
+	ctx := context.Background()
+
+	db, err := postgres.NewPostgresDB(postgres.Config{
 		Host:     viper.GetString("db.host"),
 		Port:     viper.GetString("db.port"),
 		Username: viper.GetString("db.username"),
@@ -49,7 +53,17 @@ func main() {
 		logrus.Fatalf("failed to init db : %s", err.Error())
 	}
 
-	repos := repository.NewRepository(db)
+	rdb, err := redis.NewRedisDB(ctx, redis.Config{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	})
+
+	if err != nil {
+		logrus.Fatalf("failed to init redis : %s", err.Error())
+	}
+
+	repos := repository.NewRepository(ctx, db, rdb)
 	services := service.NewService(repos)
 	handlers := handler.NewHandler(services)
 

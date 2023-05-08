@@ -38,7 +38,7 @@ type Service struct {
 func NewService(repos *repository.Repository) *Service {
 	return &Service{
 		Authorization: NewAuthService(repos.Authorization),
-		TodoList:      NewTodoListService(repos.TodoList),
+		TodoList:      NewTodoListService(repos.TodoList, repos.TodoListCache),
 		TodoItem:      NewTodoItemService(repos.TodoItem, repos.TodoList),
 	}
 }
